@@ -7,10 +7,12 @@ package rest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dtos.DogsDTO;
 import dtos.UserDTO;
 import dtos.UsersDTO;
 import entities.User;
 import errorhandling.MissingInputException;
+import facades.DogFacade;
 import facades.UserFacade;
 import java.util.List;
 import javax.annotation.security.RolesAllowed;
@@ -40,6 +42,7 @@ public class UserResource {
     private static final EntityManagerFactory EMF = EMF_Creator.createEntityManagerFactory();
        
     private static final UserFacade FACADE =  UserFacade.getUserFacade(EMF);
+    private static final DogFacade DOGFACADE = DogFacade.getDogFacade(EMF);
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     
     @Context
@@ -113,6 +116,19 @@ public class UserResource {
         UserDTO u = GSON.fromJson(user, UserDTO.class);
         UserDTO returnUser = FACADE.createUser(u);
         return GSON.toJson(returnUser);
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("dogs")
+    @RolesAllowed({"user", "admin"})
+    public String getUserDogs() {
+        String thisuser = securityContext.getUserPrincipal().getName();
+        EntityManager em = EMF.createEntityManager();
+        
+        DogsDTO dogs = DOGFACADE.getUserDogs(thisuser);
+        
+        return GSON.toJson(dogs);
     }
 }
 
